@@ -52,7 +52,7 @@ def create_db():
     with app.app_context():
         db.create_all()
         if not Admin.query.filter_by(username='admin').first():
-            new_admin = Admin(username='admin', password='admin123')
+            new_admin = Admin(username='admin', password='admin@321')
             db.session.add(new_admin)
             db.session.commit()
         print("Database created successfully.")

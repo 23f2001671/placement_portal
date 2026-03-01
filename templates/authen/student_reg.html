@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class = "row justify-content-center">
+    <div class = "col-md-6">
+        <div class = "card shadow-lg rounded-4 border-0 p-4">
+            <h2 class = "text-center fw-bold text-primary mb-4">Student Registration</h2>
+            <form action = "/student_register" method = "POST">
+                <div class = "mb-3">
+                    <label class = "form-label fw-bold">Full Name</label>
+                    <input type = "text" name = "name" class = "form-control" placeholder = "Enter your full name" required>
+                </div>
+                <div class = "mb-3">
+                    <label class = "form-label fw-bold">Email Address</label>
+                    <input type = "email" name = "email" class = "form-control" placeholder = "Enter your email address" required>
+                </div>
+                <div class = "mb-3 position-relative">
+                    <label class = "form-label fw-bold">Password</label>
+                    <input type = "password" name = "password" class = "form-control" placeholder = "Create a password" required minlength = "5">
+                    <div class = "invalid-msg">Password must be at least 5 characters long.</div>
+                </div>
+                <div class = "mb-3">
+                    <label class = "form-label fw-bold">Skills</label>
+                    <input type = "text" name = "skills" class = "form-control" placeholder = "List your skills" required>
+                </div>
+                <button type = "submit" class = "btn btn-primary w-100 btn-lg shadow-sm mt-3">Register</button>
+            </form>
+            <div class = "text-center mt-4">
+                <small>Already have an account?<a href = "/?view=login" class = "text-primary">Back to Login</a></small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+            

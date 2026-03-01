@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block extra_nav %}
+    <a href="{{ url_for('index') }}" class="btn btn-outline-light btn-sm">Home</a>
+{% endblock %}
+
+{% block content %}
+<div class = "row align-items-center" style = "min-height: 80vh;">
+
+    <div class = "col-md-7">
+        <h1 class = "display-3 fw-bold text-primary">Placement Portal</h1>
+        <p class = "fs-4 text-secondary">
+            Your gateway to a Professional success. <br>
+            Connecting th right talent with the right opportunities.
+        </p>
+        <div class = "mt-4 shadow-sm p-3 bg-white rounded-3 border-start border-primary border-5">
+            <p class = "mb-0 text-secondary fst-italic">"Don't wait for the right opportunity, create it."</p>
+        </div>
+    </div>
+
+    <div class = "col-md-5">
+        <div class = "card shadow-lg rounded-4">
+            <div class = "card-body p-5">
+
+                {% if view == 'login' %}
+                    <h3 class = "fw-bold mb-4">User Login</h3>
+                    <form action = "/login" method = "POST">
+
+                        <div class = "mb-3">
+                            <label class = "form-label fw-bold small text-muted">Email Address</label>
+                            <input type = "text" name = "login_id" class = "form-control form-control-lg" placeholder = "Email or Username" required>
+                        </div>
+
+                        <div class = "mb-3">
+                            <label class = "form-label fw-bold small text-muted">Password</label>
+                            <div class = "position-relative">
+                                <input type = "password" name = "password" class = "form-control form-control-lg" placeholder = "Enter your password" required minlength = "5">
+                                <div class = "invalid-msg">
+                                    Password must be at least 5 characters long.
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type = "submit" class = "btn btn-primary w-100 btn-lg shadow-sm mt-3">Sign In</button>
+                    </form>
+                    <hr>
+                    <div class = "text-center">
+                        <small>Need an account? <a href = "/?view=register">Create one</a></small>
+                    </div>
+
+                {% elif view == 'register' %}
+                    <h3 class = "fw-bold mb-4">Join us</h3>
+                    <p class = "text-secondary small">Select yourt role to register.</p>
+                    <div class = "d-grid gap-3">
+                        <a href = "/student_register" class = "btn btn-outline-primary btn-lg shadow-sm w-100">Register as Student</a>
+                        <a href = "/company_register" class = "btn btn-outline-secondary btn-lg shadow-sm w-100">Register as Company</a>
+                    </div>
+                    <div class = "text-center mt-4">
+                        <a href = "/?view=login" class = "text-primary small">Back to Login</a>
+                    </div>
+
+                {% else %}
+                    <h3 class = "fw-bold mb-4">Get Started</h3>
+                    <p class = "text-secondary">Welcome! Please Login to your dashboard or Create a new account.</p>
+                    <div class = "d-grid gap-3">
+                        <a href = "/?view=login" class = "btn btn-primary btn-lg shadow-sm">Login to Portal</a>
+                        <a href = "/?view=register" class = "btn btn-light border btn-lg shadow-sm">Create Account</a>
+                    </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
