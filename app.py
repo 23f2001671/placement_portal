@@ -36,8 +36,9 @@ def company_register():
         password = request.form.get('password')
         website = request.form.get('website')
         hr_contact = request.form.get('hr_contact')
+        description = request.form.get('description')
 
-        new_company = Company(name=name, email=email, password=password, website=website, hr_contact=hr_contact, status='Pending')
+        new_company = Company(name=name, email=email, password=password, website=website, hr_contact=hr_contact, description=description, status='Pending')
         try:
             db.session.add(new_company)
             db.session.commit()
@@ -59,20 +60,22 @@ def login():
             session['role'] = 'admin'
             return redirect(url_for('admin_dashboard'))
         
-        student = Student.query.filter_by(email=login_id, password=password).first()
+        student = Student.query.filter_by(email=login_id, password=password, is_active=True).first()
         if student:
             session['user_id'] = student.id
             session['role'] = 'student'
             return redirect(url_for('student_dashboard'))
         
-        company = Company.query.filter_by(email=login_id, password=password).first()
+        company = Company.query.filter_by(email=login_id, password=password, is_active=True).first()
         if company:
             if company.status == 'Approved':
                 session['user_id'] = company.id
                 session['role'] = 'company'
                 return redirect(url_for('company_dashboard'))
-            else:
+            elif company.status == 'Pending':
                 flash('Your account is pending approval. Please wait for admin approval.', 'warning')
+            else:
+                flash('Your account has been rejected. Please contact support.', 'danger')
         
         else:
             flash("Invalid credentials. Please try again.", 'danger')
@@ -80,25 +83,158 @@ def login():
 
 @app.route('/admin_dashboard')
 def admin_dashboard():
-    if 'user_id' in session and session['role'] == 'admin':
-        return render_template('admin/admin_dashboard.html')
-    else:
+    if session.get('role') != 'admin':
         return redirect(url_for('login'))
+    
+    student_search = request.args.get('student_search', '').strip()
+    company_search = request.args.get('company_search', '').strip()
+
+    stats = {
+        'total_students': Student.query.filter(Student.is_active == True).count(),
+        'total_companies': Company.query.filter(Company.is_active == True).count(),
+        'pending_companies': Company.query.filter_by(status='Pending', is_active=True).count(),
+    }
+
+    student_query = Student.query
+    if student_search:
+        student_query = student_query.filter(Student.name.contains(student_search) | Student.id.contains(student_search))
+    students = student_query.filter(Student.is_active == True).all()
+
+    company_query = Company.query.filter_by(status = "Approved")
+    if company_search:
+        company_query = company_query.filter(Company.name.contains(company_search) | Company.id.contains(company_search))
+    approved_companies = company_query.filter(Company.is_active == True).all()
+    pending_companies = Company.query.filter_by(status='Pending', is_active=True).all()
+    pending_drives = PlacementDrive.query.filter_by(status='Pending', is_active=True).all()
+    ongoing_drives = PlacementDrive.query.filter_by(status='Approved', is_active=True).all()
+    all_applications = Application.query.filter(Application.is_active == True).all()
+
+    return render_template('admin/admin_dashboard.html',
+                           student_search=student_search,
+                           company_search=company_search, 
+                           stats=stats, 
+                           students=students, 
+                           approved=approved_companies, 
+                           pending=pending_companies,
+                           pending_drives=pending_drives,
+                           ongoing_drives=ongoing_drives,
+                           applications=all_applications)
+
+@app.route('/deactivate/<string:type>/<int:id>')
+def deactivate_account(type, id):
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+    
+    try:
+        if type == 'student':
+            student = Student.query.get(id)
+            if student:
+                student.is_active = False
+                db.session.commit()
+                flash('Student account deactivated successfully.', 'success')
+            else:
+                flash('Student not found.', 'danger')
+
+        elif type == 'company':
+            company = Company.query.get(id)
+            if company:
+                company.is_active = False
+                for drive in company.drives:
+                    drive.is_active = False
+                    for application in drive.applications:
+                        application.is_active = False
+                db.session.commit()
+                flash('Company and its drives deactivated successfully.', 'success')
+            else:
+                flash('Company not found.', 'danger')
+
+        else:
+            flash('Invalid account type.', 'danger')
+    
+    except Exception as e:
+        db.session.rollback()
+        flash('An error occurred while deactivating the account.', 'danger')
+
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/approve_company/<int:id>')
+def approve_company(id):
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+    
+    company = Company.query.get(id)
+    if company:
+        company.status = 'Approved'
+        db.session.commit()
+    
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/reject_company/<int:id>')
+def reject_company(id):
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+    
+    company = Company.query.get(id)
+    if company:
+        company.status = 'Rejected'
+        db.session.commit()
+    
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/approve_drive/<int:id>')
+def approve_drive(id):
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+    
+    drive = PlacementDrive.query.get(id)
+    if drive:
+        drive.status = 'Approved'
+        db.session.commit()
+    
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/reject_drive/<int:id>')
+def reject_drive(id):
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+    
+    drive = PlacementDrive.query.get(id)
+    if drive:
+        drive.status = 'Rejected'
+        db.session.commit()
+    
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('You have been logged out.', 'success')
+    return redirect(url_for('login'))
+
+@app.after_request
+def add_header(response):
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '-1'
+    return response
+
 
 @app.route('/student_dashboard')
 def student_dashboard():
-    if 'user_id' in session and session['role'] == 'student':
-        return render_template('student/student_dashboard.html')
-    else:
+    if session.get('role') != 'student':
         return redirect(url_for('login'))
+        
+    else:
+        return render_template('student/student_dashboard.html')
     
 @app.route('/company_dashboard')
 def company_dashboard():
-    if 'user_id' in session and session['role'] == 'company':
-        return render_template('company/company_dashboard.html')
-    else:
+    if session.get('role') != 'company':
         return redirect(url_for('login'))
+        
+    else:
+        return render_template('company/company_dashboard.html')
+
 
 if __name__ == '__main__':
     app.run(debug=True)
-            

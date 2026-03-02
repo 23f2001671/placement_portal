@@ -19,7 +19,9 @@ class Company(db.Model):
     password = db.Column(db.String(50), unique=True, nullable=False)
     website = db.Column(db.String(100))
     hr_contact = db.Column(db.String(15))
+    description = db.Column(db.Text)
     status = db.Column(db.String(20), default='Pending')
+    is_active = db.Column(db.Boolean, default=True)
     drives = db.relationship('PlacementDrive', backref='company', lazy=True, cascade="all, delete-orphan")
 
 class Student(db.Model):
@@ -29,6 +31,7 @@ class Student(db.Model):
     password = db.Column(db.String(50), unique=True, nullable=False)
     skills = db.Column(db.String(200))
     resume_path = db.Column(db.String(200))
+    is_active = db.Column(db.Boolean, default=True)
     applications = db.relationship('Application', backref='student', lazy=True, cascade="all, delete-orphan")
 
 class PlacementDrive(db.Model):
@@ -38,6 +41,7 @@ class PlacementDrive(db.Model):
     eligibility= db.Column(db.Text)
     deadline = db.Column(db.String(20))
     status = db.Column(db.String(20), default='Pending')
+    is_active = db.Column(db.Boolean, default=True)
     company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
     applications = db.relationship('Application', backref='drive', lazy=True, cascade="all, delete-orphan")
 
@@ -47,6 +51,7 @@ class Application(db.Model):
     drive_id = db.Column(db.Integer, db.ForeignKey('placement_drive.id'), nullable=False)
     status = db.Column(db.String(20), default='Applied')
     date_applied = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    is_active = db.Column(db.Boolean, default=True)
 
 def create_db():
     with app.app_context():

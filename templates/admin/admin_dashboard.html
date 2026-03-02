@@ -1,5 +1,243 @@
 {% extends 'base.html' %}
 
+{% block extra_nav %}
+<div class = "container">
+    <a href = "{{ url_for('logout') }}" class = "btn btn-outline-light btn-sm">Logout</a>
+{% endblock %}
+
 {% block content %}
-<h1 class = "display-4 fw-bold text-primary mb-4">Admin Dashboard</h1>
+<div class = "container-fluid py-4">
+    <h2 class = "fw-bold mb-4">Admin Dashboard</h2>
+    <div class = "row mb-4">
+        <div class = "col-md-3">
+            <div class = "card bg-primary text-white shadow-sm p-3">
+                <h5>Registered Students</h5>
+                <h2 class = "fw-bold">{{ stats.total_students }}</h2>
+            </div> 
+        </div>
+        <div class = "col-md-3">
+            <div class = "card bg-success text-white shadow-sm p-3">
+                <h5>Approved Companies</h5>
+                <h2 class = "fw-bold">{{ stats.total_companies }}</h2>
+            </div>
+        </div>
+        <div class = "col-md-3">
+            <div class = "card bg-warning text-white shadow-sm p-3">
+                <h5>Pending Companies</h5>
+                <h2 class = "fw-bold">{{ stats.pending_companies }}</h2>
+            </div>
+        </div>
+        <div class = "col-md-3">
+            <div class = "card bg-danger text-white shadow-sm p-3">
+                <h5>Ongoing Drives</h5>
+                <h2 class = "fw-bold">{{ ongoing_drives|length }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class = "row mb-4">
+        <div class = "col-md-6">
+            <div class = "card shadow-sm h-100">
+                <div class = "card-body">
+                    <h5 class = "fw-bold">Registered Students</h5>
+                    <form class = "d-flex mb-3" method = "GET" action = "{{ url_for('admin_dashboard') }}">
+                        <input class = "form-control me-2" name = "student_search" value = "{{ student_search}}" placeholder = "Search Student">
+                        <button class = "btn btn-primary" type = "submit">Search</button>
+                    </form>
+                    <div class = "overflow-auto" style = "max-height: 300px;">
+                        <table class = "table table-sm align-middle">
+                            <thead class = "table-light"><tr><th>Name</th><th>Email</th><th>Skills</th><th class = "text-end">Actions</th></tr></thead>
+                            <tbody>
+                                {% for s in students %}
+                                <tr>
+                                    <td>{{ s.name }}</td>
+                                    <td>{{ s.email }}</td>
+                                    <td>{{ s.skills }}</td>
+                                    <td class = "text-end"><a href = "/deactivate/student/{{s.id}}" class = "btn btn-sm btn-outline-danger" onclick = "return confirm('Deactivate Student?')">Deactivate</a></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class = "col-md-6">
+            <div class = "card shadow-sm h-100">
+                <div class = "card-body">
+                    <h5 class = "fw-bold">Registered Companies</h5>
+                    <form class = "d-flex mb-3" method = "GET" action = "{{ url_for('admin_dashboard') }}">
+                        <input class = "form-control me-2" name = "company_search" value = "{{ company_search}}" placeholder = "Search Company">
+                        <button class = "btn btn-primary" type = "submit">Search</button>
+                    </form>
+                    <div class = "overflow-auto" style = "max-height: 300px;">
+                        <table class = "table table-sm align-middle">
+                            <thead class = "table-light"><tr><th>Name</th><th class = "text-end">Actions</th></tr></thead>
+                            <tbody>
+                                {% for c in approved %}
+                                <tr>
+                                    <td>{{ c.name }}</td>
+                                    <td class = "text-end">
+                                        <button class = "btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#companydetailsModal{{ c.id }}">View</button>
+                                        <a href = "/deactivate/company/{{c.id}}" class = "btn btn-sm btn-outline-danger" onclick = "return confirm('Deactivate Company?')">Deactivate</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class = "row mb-4">
+        <div class = "col-md-6">
+            <div class = "card shadow-sm h-100">
+                <div class = "card-header bg-info text-white"><strong>Pending Companies</strong></div>
+                <div class = "card-body p-0">
+                    {% for c in pending %}
+                    <div class = "d-flex justify-content-between align-items-centre border-bottom p-3">
+                        <span><strong>{{ c.name }}</strong></span>
+                        <div class = "d-flex gap-2">
+                        <button class = "btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#companydetailsModal{{ c.id }}">View</button>
+                        <a href = "{{ url_for('approve_company', id=c.id) }}" class = "btn btn-sm btn-outline-success text-end" onclick = "return confirm('Approve Company?')">Approve</a>
+                        <a href = "{{ url_for('reject_company', id=c.id) }}" class = "btn btn-sm btn-outline-danger text-end" onclick = "return confirm('Reject Company?')">Reject</a>
+                        </div>
+                    </div>
+                    {% else %}<p class = "text-center py-3 mb-0">No pending companies</p>{% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class = "col-md-6">
+            <div class = "card shadow-sm h-100">
+                <div class = "card-header bg-info text-white"><strong>Pending Drives</strong></div>
+                <div class = "card-body p-0">
+                    {% for d in pending_drives %}
+                    <div class = "d-flex justify-content-between align-items-centre border-bottom p-3">
+                        <span><strong>{{ d.job_title }} at {{ d.company.name }}</strong></span>
+                        <div class = "d-flex gap-2">
+                            <button class = "btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#pendingdrivesModal{{ d.id }}">View</button>
+                            <a href = "{{ url_for('approve_drive', id=d.id) }}" class = "btn btn-sm btn-outline-success" onclick = "return confirm('Approve Drive?')">Approve</a>
+                            <a href = "{{ url_for('reject_drive', id=d.id) }}" class = "btn btn-sm btn-outline-danger text-black-end" onclick = "return confirm('Reject Drive?')">Reject</a>
+                        </div>
+                    </div>
+                    {% else %}<p class = "text-center py-3 mb-0">No pending drives</p>{% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class = "card shadow-sm mb-4">
+        <div class = "card-header bg-info text-white"><strong>Ongoing Drives</strong></div>
+        <div class = "card-body p-0">
+            <table class = "table table-hover align-middle mb-0">
+                <thead class = "table-light">
+                    <tr><th>Company</th><th>Job Title</th><th>Deadline</th><th class = "text-end">Actions</th></tr>
+                </thead>
+                <tbody>
+                    {% for d in ongoing_drives %}
+                    <tr>
+                        <td>{{ d.company.name }}</td>
+                        <td>{{ d.job_title }}</td>
+                        <td>{{ d.deadline }}</td>
+                        <td class = "text-end">
+                            <button class = "btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#ongoingdrivesModal{{ d.id }}">View</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class = "card shadow-sm mb-4">
+        <div class = "card-header bg-info text-white"><strong>Student Applications</strong></div>
+        <div class = "card-body p-0">
+            <table class = "table table-hover align-middle mb-0">
+                <thead class = "table-light">
+                    <tr><th>Student Name</th><th>Company</th><th>Job Title</th><th>Date Applied</th><th>Status</th><th class = "text-end">Resume</th></tr>
+                </thead>
+                <tbody>
+                    {% for a in applications %}
+                    <tr>
+                        <td>{{ a.student.name }}</td>
+                        <td>{{ a.drive.company.name }}</td>
+                        <td>{{ a.drive.job_title }}</td>
+                        <td>{{ a.date_applied }}</td>
+                        <td>{{ a.status }}</td>
+                        <td class = "text-end">
+                            {% if a.student.resume_path %}
+                            <a href = "{{ url_for('static', filename='uploads/resumes/' + a.student.resume_path) }}" target = "_blank" class = "btn btn-sm btn-outline-primary">View Resume</a>
+                            {% else %}
+                            <span class = "text-muted">No Resume</span>
+                            {% endif %}   
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% for c in approved + pending %}
+<div class="modal fade" id="companydetailsModal{{ c.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Company Details: {{ c.name }}</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Email:</strong> {{ c.email }}</p>
+                <p><strong>Website:</strong> <a href="{{ c.website }}" target="_blank">{{ c.website }}</a></p>
+                <p><strong>HR Contact:</strong> {{ c.hr_contact }}</p>
+                <p><strong>Description:</strong><br>{{ c.description }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% for d in pending_drives %}
+<div class="modal fade" id="pendingdrivesModal{{ d.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Drive Details: {{ d.job_title }} at {{ d.company.name }}</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Company:</strong> {{ d.company.name }}</p>
+                <p><strong>Job Title:</strong> {{ d.job_title }}</p>
+                <p><strong>Description:</strong><br>{{ d.description }}</p>
+                <p><strong>Deadline:</strong> {{ d.deadline }}</p>
+                <p><strong>Eligibility:</strong><br>{{ d.eligibility }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% for d in ongoing_drives %}
+<div class="modal fade" id="ongoingdrivesModal{{ d.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Drive Details: {{ d.job_title }} at {{ d.company.name }}</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Company:</strong> {{ d.company.name }}</p>
+                <p><strong>Job Title:</strong> {{ d.job_title }}</p>
+                <p><strong>Description:</strong><br>{{ d.description }}</p>
+                <p><strong>Deadline:</strong> {{ d.deadline }}</p>
+                <p><strong>Eligibility:</strong><br>{{ d.eligibility }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
 {% endblock %}
