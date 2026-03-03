@@ -60,25 +60,33 @@ def login():
             session['role'] = 'admin'
             return redirect(url_for('admin_dashboard'))
         
-        student = Student.query.filter_by(email=login_id, password=password, is_active=True).first()
+        student = Student.query.filter_by(email=login_id, password=password).first()
         if student:
-            session['user_id'] = student.id
-            session['role'] = 'student'
-            return redirect(url_for('student_dashboard'))
-        
-        company = Company.query.filter_by(email=login_id, password=password, is_active=True).first()
-        if company:
-            if company.status == 'Approved':
-                session['user_id'] = company.id
-                session['role'] = 'company'
-                return redirect(url_for('company_dashboard'))
-            elif company.status == 'Pending':
-                flash('Your account is pending approval. Please wait for admin approval.', 'warning')
+            if student.is_active == True:
+                session['user_id'] = student.id
+                session['role'] = 'student'
+                return redirect(url_for('student_dashboard'))
             else:
-                flash('Your account has been rejected. Please contact support.', 'danger')
+                flash('Your account is deactivated.', 'danger')
+                return redirect(url_for('login'))
         
+        
+        company = Company.query.filter_by(email=login_id, password=password).first()
+        if company:
+            if company.is_active == True:
+                if company.status == 'Approved':
+                    session['user_id'] = company.id
+                    session['role'] = 'company'
+                    return redirect(url_for('company_dashboard'))
+                elif company.status == 'Pending':
+                    flash('Your account is pending approval. Please wait for admin approval.', 'warning')
+                else:
+                    flash('Your account has been rejected. Please contact support.', 'danger')
+            else:
+                flash('Your account is deactivated.', 'danger')
+                return redirect(url_for('login'))
         else:
-            flash("Invalid credentials. Please try again.", 'danger')
+            flash("Invalid credentials or Account not found. Please try again.", 'danger')
     return render_template('index.html', view='login')
 
 @app.route('/admin_dashboard')
@@ -155,7 +163,92 @@ def deactivate_account(type, id):
         db.session.rollback()
         flash('An error occurred while deactivating the account.', 'danger')
 
-    return redirect(url_for('admin_dashboard'))
+    return redirect(url_for('view_history'))
+
+@app.route('/activate/<string:type>/<int:id>')
+def activate_account(type, id):
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+    
+    try:
+        if type == 'student':
+            student = Student.query.get(id)
+            if student:
+                student.is_active = True
+                db.session.commit()
+                flash('Student account activated successfully.', 'success')
+            else:
+                flash('Student not found.', 'danger')
+
+        elif type == 'company':
+            company = Company.query.get(id)
+            if company:
+                company.is_active = True
+                for drive in company.drives:
+                    drive.is_active = True
+                    for application in drive.applications:
+                        application.is_active = True
+                db.session.commit()
+                flash('Company and its drives activated successfully.', 'success')
+            else:
+                flash('Company not found.', 'danger')
+
+        else:
+            flash('Invalid account type.', 'danger')
+    
+    except Exception as e:
+        db.session.rollback()
+        flash('An error occurred while activating the account.', 'danger')
+
+    return redirect(url_for('view_history'))
+
+@app.route('/delete/<string:type>/<int:id>')
+def delete_account(type, id):
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+    
+    try:
+        if type == 'student':
+            student = Student.query.get(id)
+            if student:
+                db.session.delete(student)
+                db.session.commit()
+                flash('Student account deleted successfully.', 'success')
+            else:
+                flash('Student not found.', 'danger')
+
+        elif type == 'company':
+            company = Company.query.get(id)
+            if company:
+                for drive in company.drives:
+                    for application in drive.applications:
+                        db.session.delete(application)
+                    db.session.delete(drive)
+                db.session.delete(company)
+                db.session.commit()
+                flash('Company and its drives deleted successfully.', 'success')
+            else:
+                flash('Company not found.', 'danger')
+
+        else:
+            flash('Invalid account type.', 'danger')
+    
+    except Exception as e:
+        db.session.rollback()
+        flash('An error occurred while deleting the account.', 'danger')
+
+    return redirect(url_for('view_history'))
+
+@app.route('/view_history')
+def view_history():
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+    students = Student.query.all()
+    company = Company.query.all()
+    drives = PlacementDrive.query.all()
+    applications = Application.query.all()
+    
+    return render_template('admin/view_history.html', students=students, company=company, drives=drives, applications=applications)
 
 @app.route('/approve_company/<int:id>')
 def approve_company(id):

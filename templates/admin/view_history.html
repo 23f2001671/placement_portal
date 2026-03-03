@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block extra_nav %}
+<div class = "container">
+    <a href = "{{ url_for('admin_dashboard') }}" class = "btn btn-outline-light btn-sm">Back</a>
+{% endblock %}
+
+{% block content %}
+<div class = "container-fluid py-4">
+    <h2 class = "fw-bold mb-4">History</h2>
+
+    <div class = "card shadow-sm mb-4">
+        <div class = "card-header bg-info text-white">Student History</div>
+        <div class = "card-body p-0">
+            <div class = "table-responsive">
+                <table class = "table table-striped align-middle mb-0">
+                    <thead class = "table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Skills</th>
+                            <th class = "text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in students %}
+                        <tr>
+                            <td>{{ s.name }}</td>
+                            <td>{{ s.email }}</td>
+                            <td>{{ s.skills }}</td>
+                            <div class = "d-flex gap-2">
+                                <td class = "text-end">
+                                    {% if s.is_active %}
+                                        <a href = "/deactivate/student/{{s.id}}" class = "btn btn-sm btn-outline-danger text-end">Deactivate</a>
+                                    {% else %}
+                                        <a href = "/activate/student/{{s.id}}" class = "btn btn-sm btn-outline-success text-end">Activate</a>
+                                        <a href = "/delete/student/{{s.id}}" class = "btn btn-sm btn-outline-danger text-end">Delete</a>
+                                    {% endif %}
+
+                                </td>
+                            </divd>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class = "card shadow-sm mb-4">
+        <div class = "card-header bg-info text-white">Company History</div>
+        <div class = "card-body p-0">
+            <div class = "table-responsive">
+                <table class = "table table-striped align-middle mb-0">
+                    <thead class = "table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Hr_Contact</th>
+                            <th>Status</th>
+                            <th class = "text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in company %}
+                        <tr>
+                            <td>{{ c.name }}</td>
+                            <td>{{ c.email }}</td>
+                            <td>{{ c.hr_contact }}</td>
+                            <td>{{ c.status }}</td>
+                            <div class = "d-flex gap-2">
+                                <td class = "text-end">
+                                    {% if c.is_active %}
+                                        <a href = "/deactivate/company/{{c.id}}" class = "btn btn-sm btn-outline-danger text-end">Deactivate</a>
+                                    {% else %}
+                                        <a href = "/activate/company/{{c.id}}" class = "btn btn-sm btn-outline-success text-end">Activate</a>
+                                        <a href = "/delete/company/{{c.id}}" class = "btn btn-sm btn-outline-danger text-end">Delete</a>
+                                    {% endif %}
+
+                                </td>
+                            </divd>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class = "card shadow-sm mb-4">
+        <div class = "card-header bg-info text-white">Placement Drive History</div>
+        <div class = "card-body p-0">
+            <div class = "table-responsive">
+                <table class = "table table-striped align-middle mb-0">
+                    <thead class = "table-light">
+                        <tr>
+                            <th>Company Name</th>
+                            <th>Job Title</th>
+                            <th>Deadline</th>
+                            <th>Eligibility Criteria</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in drive %}
+                        <tr>
+                            <td>{{ d.company.name }}</td>
+                            <td>{{ d.job_title }}</td>
+                            <td>{{ d.deadline }}</td>
+                            <td>{{ d.eligibility_criteria }}</td>
+                            <td>{{ d.status }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class = "card shadow-sm mb-4">
+        <div class = "card-header bg-info text-white">Application History</div>
+        <div class = "card-body p-0">
+            <div class = "table-responsive">
+                <table class = "table table-striped align-middle mb-0">
+                    <thead class = "table-light">
+                        <tr>
+                            <th>Student Name</th>
+                            <th>Company Name</th>
+                            <th>Job Title</th>
+                            <th>Status</th>
+                            <th>Resmune</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in application %}
+                        <tr>
+                            <td>{{ a.student.name }}</td>
+                            <td>{{ a.drives.company.name }}</td>
+                            <td>{{ a.drives.job_title }}</td>
+                            <td>{{ a.status }}</td>
+                            <td class = "text-end">
+                            {% if a.student.resume_path %}
+                            <a href = "{{ url_for('static', filename='uploads/resumes/' + a.student.resume_path) }}" target = "_blank" class = "btn btn-sm btn-outline-dark">View Resume</a>
+                            {% else %}
+                            <span class = "text-muted">No Resume</span>
+                            {% endif %}   
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+{% endblock %}
