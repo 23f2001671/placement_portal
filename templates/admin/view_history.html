@@ -31,7 +31,7 @@
                             <div class = "d-flex gap-2">
                                 <td class = "text-end">
                                     {% if s.is_active %}
-                                        <a href = "/deactivate/student/{{s.id}}" class = "btn btn-sm btn-outline-danger text-end">Deactivate</a>
+                                        <text>None</text>
                                     {% else %}
                                         <a href = "/activate/student/{{s.id}}" class = "btn btn-sm btn-outline-success text-end">Activate</a>
                                         <a href = "/delete/student/{{s.id}}" class = "btn btn-sm btn-outline-danger text-end">Delete</a>
@@ -71,7 +71,7 @@
                             <div class = "d-flex gap-2">
                                 <td class = "text-end">
                                     {% if c.is_active %}
-                                        <a href = "/deactivate/company/{{c.id}}" class = "btn btn-sm btn-outline-danger text-end">Deactivate</a>
+                                        <text>None</text>
                                     {% else %}
                                         <a href = "/activate/company/{{c.id}}" class = "btn btn-sm btn-outline-success text-end">Activate</a>
                                         <a href = "/delete/company/{{c.id}}" class = "btn btn-sm btn-outline-danger text-end">Delete</a>
@@ -99,16 +99,20 @@
                             <th>Deadline</th>
                             <th>Eligibility Criteria</th>
                             <th>Status</th>
+                            <th class = "text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for d in drive %}
+                        {% for d in drives %}
                         <tr>
                             <td>{{ d.company.name }}</td>
                             <td>{{ d.job_title }}</td>
                             <td>{{ d.deadline }}</td>
                             <td>{{ d.eligibility_criteria }}</td>
                             <td>{{ d.status }}</td>
+                            <td class = "text-end">
+                                <a href = "/delete_drive/{{d.id}}" class = "btn btn-sm btn-outline-danger text-end">Delete</a>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>

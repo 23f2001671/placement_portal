@@ -86,7 +86,7 @@ def login():
                 flash('Your account is deactivated.', 'danger')
                 return redirect(url_for('login'))
         else:
-            flash("Invalid credentials or Account not found. Please try again.", 'danger')
+            flash("Invalid credentials or Account not found.", 'danger')
     return render_template('index.html', view='login')
 
 @app.route('/admin_dashboard')
@@ -163,7 +163,7 @@ def deactivate_account(type, id):
         db.session.rollback()
         flash('An error occurred while deactivating the account.', 'danger')
 
-    return redirect(url_for('view_history'))
+    return redirect(url_for('admin_dashboard'))
 
 @app.route('/activate/<string:type>/<int:id>')
 def activate_account(type, id):
@@ -298,6 +298,21 @@ def reject_drive(id):
     
     return redirect(url_for('admin_dashboard'))
 
+@app.route('/delete_drive/<int:id>')
+def delete_drive(id):
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+
+    drive = PlacementDrive.query.get(id)
+    if drive:
+        db.session.delete(drive)
+        db.session.commit()
+        flash('Placement drive deleted successfully.', 'success')
+    else:
+        flash('Placement drive not found.', 'danger')
+
+    return redirect(url_for('view_history'))
+
 @app.route('/logout')
 def logout():
     session.clear()
@@ -324,10 +339,125 @@ def student_dashboard():
 def company_dashboard():
     if session.get('role') != 'company':
         return redirect(url_for('login'))
+    
+    company_id = session.get('user_id')
+    company = Company.query.get(company_id)
+    drives = PlacementDrive.query.filter_by(company_id=company_id).all()
         
-    else:
-        return render_template('company/company_dashboard.html')
+    return render_template('company/company_dashboard.html', company=company, drives=drives)
 
+@app.route('/edit_profile', methods=['GET', 'POST'])
+def edit_profile():
+    if session.get('role') != 'company':
+        return redirect(url_for('login'))
+
+    company_id = session.get('user_id')
+    company = Company.query.get(company_id)
+
+    if not company:
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        company.name = request.form.get('name')
+        company.hr_contact = request.form.get('hr_contact')
+        company.website = request.form.get('website')
+        company.description = request.form.get('description')
+        db.session.commit()
+        flash('Profile updated successfully.', 'success')
+        return redirect(url_for('company_dashboard'))
+
+    return render_template('company/edit_profile.html', company=company)
+
+@app.route('/create_drive', methods=['GET', 'POST'])
+def create_drive():
+    if session.get('role') != 'company':
+        return redirect(url_for('login'))
+
+    company_id = session.get('user_id')
+    company = Company.query.get(company_id)
+
+    if not company:
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        new_drive = PlacementDrive(
+            company_id=company_id,
+            job_title=request.form.get('job_title'),
+            description=request.form.get('description'),
+            eligibility=request.form.get('eligibility'),
+            deadline=request.form.get('deadline'),
+            status='Pending'
+        )
+        db.session.add(new_drive)
+        db.session.commit()
+
+        flash('Placement drive created successfully.', 'success')
+        return redirect(url_for('company_dashboard'))
+
+    return render_template('company/create_drive.html')
+
+@app.route('/view_applicants/<int:drive_id>')
+def view_applicants(drive_id):
+    if session.get('role') != 'company':
+        return redirect(url_for('login'))
+
+    drive = PlacementDrive.query.get(drive_id)
+    if not drive or drive.company_id != session.get('user_id'):
+        flash('Placement drive not found or unauthorized access.', 'danger')
+        return redirect(url_for('company_dashboard'))
+    return render_template('company/view_applicants.html', drive=drive)
+
+@app.route('/update_application_status/<int:app_id>/<string:new_status>')
+def update_application_status(app_id, new_status):
+    if session.get('role') != 'company':
+        return redirect(url_for('login'))
+
+    application = Application.query.get(app_id)
+    application.status = new_status
+    db.session.commit()
+    return redirect(url_for('view_applicants', drive_id=application.drive_id))
+
+@app.route('/edit_drive/<int:drive_id>', methods=['GET', 'POST'])
+def edit_drive(drive_id):
+    if session.get('role') != 'company':
+        return redirect(url_for('login'))
+
+    drive = PlacementDrive.query.get(drive_id)
+    if not drive or drive.company_id != session.get('user_id'):
+        flash('Placement drive not found or unauthorized access.', 'danger')
+        return redirect(url_for('company_dashboard'))
+
+    if request.method == 'POST':
+        drive.job_title = request.form.get('job_title')
+        drive.description = request.form.get('description')
+        drive.eligibility = request.form.get('eligibility')
+        drive.deadline = request.form.get('deadline')
+        drive.status = 'Pending'
+        db.session.commit()
+        flash('Placement drive updated successfully.', 'success')
+        return redirect(url_for('company_dashboard'))
+
+    return render_template('company/edit_drive.html', drive=drive)
+
+@app.route('/toggle_drive_status/<int:drive_id>')
+def toggle_drive_status(drive_id):
+    if session.get('role') != 'company':
+        return redirect(url_for('login'))
+
+    drive = PlacementDrive.query.get(drive_id)
+    if not drive or drive.company_id != session.get('user_id'):
+        flash('Placement drive not found or unauthorized access.', 'danger')
+        return redirect(url_for('company_dashboard'))
+
+    if drive.status == 'Closed':
+        drive.status = 'Pending'
+        flash('Placement drive reopened and sent for approval.', 'success')
+    else:
+        drive.status = 'Closed'
+        flash('Placement drive closed.', 'success')
+
+    db.session.commit()
+    return redirect(url_for('company_dashboard'))
 
 if __name__ == '__main__':
     app.run(debug=True)
