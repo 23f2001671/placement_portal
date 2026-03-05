@@ -326,15 +326,84 @@ def add_header(response):
     response.headers['Expires'] = '-1'
     return response
 
+UPLOAD_FOLDER = 'static/uploads/resumes'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.route('/student_dashboard')
 def student_dashboard():
     if session.get('role') != 'student':
         return redirect(url_for('login'))
-        
-    else:
-        return render_template('student/student_dashboard.html')
     
+    student = Student.query.get(session.get('user_id'))
+    companies = Company.query.filter_by(status = "Approved", is_active = True ).all()
+    applications = Application.query.filter_by(student_id=student.id, is_active=True).order_by(Application.date_applied.desc()).all()
+        
+    return render_template('student/student_dashboard.html', student=student, companies=companies, applications=applications)
+
+@app.route('/edit_profile_student', methods = ['GET', 'POST'])
+def edit_profile_student():
+    if session.get('role') != 'student':
+        return redirect(url_for('login'))
+    
+    student = Student.query.get(session.get('user_id'))
+
+    if request.method == 'POST':
+        student.name = request.form.get('name')
+        student.skills = request.form.get('skills')
+        file = request.files.get('resume')
+        if file and file.filename != '':
+            extension = file.filename.rsplit('.', 1)[1].lower()
+            filename = f"resume_student_{student.id}.{extension}"
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            student.resume_path = filename
+        db.session.commit()
+        flash("Profile updated successfully.")
+        return redirect(url_for('student_dashboard'))
+    
+    return render_template('student/edit_profile_student.html', student=student)
+
+@app.route('/view_company/<int:company_id>')
+def view_company(company_id):
+    if session.get('role') != 'student':
+        return redirect(url_for('login'))
+    
+    company = Company.query.get(company_id)
+    drives = PlacementDrive.query.filter_by(company_id=company_id, status = 'Approved', is_active = True)
+
+    return render_template('student/view_company.html', company=company, drives=drives)
+
+@app.route('/view_drive/<int:drive_id>')
+def view_drive(drive_id):
+    if session.get('role') != 'student':
+        return redirect(url_for('login'))
+    
+    drive = PlacementDrive.query.get(drive_id)
+    already_applied = Application.query.filter_by(student_id = session.get('user_id'), drive_id = drive_id).first()
+
+    return render_template('student/view_drive.html', drive=drive, already_applied=already_applied)
+
+@app.route('/apply/<int:drive_id>')
+def apply_for_drive(drive_id):
+    if session.get('role') != 'student':
+        return redirect(url_for('login'))
+    
+    student_id = session.get('user_id')
+    new_app = Application(student_id = student_id, drive_id = drive_id)
+    db.session.add(new_app)
+    db.session.commit()
+    flash("Successfully applied!")
+    return redirect(url_for('student_dashboard'))
+
+@app.route('/student_history')
+def student_history():
+    if session.get('role') != 'student':
+        return redirect(url_for('login'))
+    
+    student = Student.query.get(session.get('user_id'))
+    applications = Application.query.filter_by(student_id=student.id).all()
+    
+    return render_template('student/student_history.html', student=student, applications=applications)
+
 @app.route('/company_dashboard')
 def company_dashboard():
     if session.get('role') != 'company':

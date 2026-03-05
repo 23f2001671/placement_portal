@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block extra_nav %}
+<div class = "container">
+    <a href = "{{ url_for('student_dashboard') }}" class = "btn btn-outline-light btn-sm">Back</a>
+{% endblock %}
+
+{% block content %}
+<div class = "container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class = "fw-bold mb-4">Student History</h1>
+    </div>
+
+    <div class = "card shadow-sm mb-4">
+        <div class = "card-header bg-info text-white">Companies</div>
+        <div class = "card-body p-0">
+            <div class = "table-responsive">
+                <table class = "table table-striped align-middle mb-0">
+                    <thead class = "table">
+                        <tr>
+                            <th>Drive. No</th>
+                            <th>Drive Name</th>
+                            <th>Company</th>
+                            <th>Date Applied</th>
+                            <th>Result</th>  
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in applications %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ a.drive.job_title }}</td>
+                            <td>{{ a.drive.company.name }}</td>
+                            <td>{{ a.date_applied }}</td>
+                            <td>
+                                <span class = "badge
+                                    {% if a.status == 'Selected' %}bg-success
+                                    {% elif a.status == 'Rejected' %}bg-danger
+                                    {% elif a.status == 'Shortlisted' %}bg-warning
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ a.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td class = "text-center " colspan = 5>No application history found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>   
+    </div>
+</div>
+{% endblock %}

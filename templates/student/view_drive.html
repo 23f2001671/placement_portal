@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block extra_nav %}
+<div class = "container">
+    <a href = "{{ url_for('student_dashboard') }}" class = "btn btn-outline-light btn-sm">Back</a>
+{% endblock %}
+
+{% block content %}
+<div class = "row justify-content-center">
+    <div class = "col-md-6">
+        <div class = "card shadow-lg p-4 rounded-4">
+            <div class = "mb-5 centered text-center">
+                <h3 class = "fw-bold">{{ drive.job_title }}</h3>
+                <h4 class = "fw-bold text-muted">{{ drive.company.name }}</h4>
+            </div>
+            <div class = "mb-3">
+                <h6 class = "fw-bold text-primary">JOB DESCRIPTION</h6>
+                <p>{{ drive.description }}</p>
+            </div>
+            <div class = "mb-3">
+                <h6 class = "fw-bold text-primary">ELIGIBILITY</h6>
+                <p>{{ drive.eligibility }}</p>
+            </div>
+            <div class = "mb-3">
+                <h6 class = "fw-bold text-primary">DEADLINE</h6>
+                <p>{{ drive.deadline }}</p>
+            </div>
+            <div class = "mb-3 d-flex justify-content-center">
+                {% if already_applied %}
+                    <button class = "btn btn-outline-dark btn-sm" disabled>Already Applied</button>
+                {% else %}
+                    <a href = "{{ url_for('apply_for_drive', drive_id = drive.id) }}" class = "btn btn-outline-success btn-sm">Apply</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

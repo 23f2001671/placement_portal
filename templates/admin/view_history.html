@@ -136,11 +136,11 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for a in application %}
+                        {% for a in applications %}
                         <tr>
                             <td>{{ a.student.name }}</td>
-                            <td>{{ a.drives.company.name }}</td>
-                            <td>{{ a.drives.job_title }}</td>
+                            <td>{{ a.drive.company.name }}</td>
+                            <td>{{ a.drive.job_title }}</td>
                             <td>{{ a.status }}</td>
                             <td class = "text-end">
                             {% if a.student.resume_path %}
