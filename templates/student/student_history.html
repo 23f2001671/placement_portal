@@ -31,7 +31,7 @@
                             <td>{{ loop.index }}</td>
                             <td>{{ a.drive.job_title }}</td>
                             <td>{{ a.drive.company.name }}</td>
-                            <td>{{ a.date_applied }}</td>
+                            <td>{{ a.date_applied.strftime("%d %b %Y, %I:%M %p") }}</td>
                             <td>
                                 <span class = "badge
                                     {% if a.status == 'Selected' %}bg-success

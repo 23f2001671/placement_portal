@@ -60,6 +60,7 @@
                             <th>Drive Name</th>
                             <th>Company</th>
                             <th>Date Applied</th>
+                            <th>Status</th>
                             <th class = "text-end">Actions</th>
                         </tr>
                     </thead>
@@ -69,14 +70,23 @@
                             <td>{{ loop.index }}</td>
                             <td>{{ a.drive.job_title }}</td>
                             <td>{{ a.drive.company.name }}</td>
-                            <td>{{ a.date_applied }}</td>
+                            <td>{{ a.date_applied.strftime("%d %b %Y, %I:%M %p") }}</td>
+                            <td>
+                                <span class = "badge
+                                    {% if a.status == 'Selected' %}bg-success
+                                    {% elif a.status == 'Rejected' %}bg-danger
+                                    {% elif a.status == 'Shortlisted' %}bg-warning
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ a.status }}
+                                </span>
+                            </td>
                             <td class = "text-end">
                                 <a href = "{{ url_for('view_drive', drive_id=a.drive.id) }}" class = "btn btn-outline-dark">View</a>
                             </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td class = "text-center " colspan = 5>No applied applications.</td>
+                            <td class = "text-center " colspan = 12>No applied applications.</td>
                         </tr>
                         {% endfor %}
                     </tbody>

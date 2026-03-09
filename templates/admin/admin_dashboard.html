@@ -149,6 +149,10 @@
                             <button class = "btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#ongoingdrivesModal{{ d.id }}">View</button>
                         </td>
                     </tr>
+                    {% else %}
+                    <tr>
+                        <td class = "text-center" colspan="12">No ongoing drives.</td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -177,6 +181,10 @@
                             <span class = "text-muted">No Resume</span>
                             {% endif %}   
                         </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td class = "text-center" colspan="12">No applications.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
