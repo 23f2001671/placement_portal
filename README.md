@@ -42,43 +42,41 @@ Session Management: Flask-Session with role-based access control
 # Getting Started
 Follow these steps to get the project running on your local machine.
 
-1. Prerequisites
+# 1. Prerequisites
 Ensure you have Python 3.x installed.
 
-2. Setup Virtual Environment
+# 2. Setup Virtual Environment
 Open your terminal in the project folder and run:
 
-# Create the environment
+Create the environment:
+
 python -m venv venv
-# Activate it (Windows)
+
+Activate it (Windows):
+
 venv\Scripts\activate 
-# Activate it (Mac/Linux)
+
+Activate it (Mac/Linux):
+
 source venv/bin/activate
 
-3. Install Dependencies
+# 3. Install Dependencies
 pip install Flask Flask-SQLAlchemy
 
-4. Initialize the Database
+# 4. Initialize the Database
 Before running the app, you need to create the database file and the default admin account:
+
 python models.py
+
 This will create a placement.db file and a default admin with:
+
 Username: admin
 Password: admin@321
 
-5. Run the Application
+# 5. Run the Application
 python app.py
-The app will be live at: http://127.0.0.1:5000
 
-# Project Structure
-Plaintext
-├── app.py              # Main Flask Controller (Routes & Logic)
-├── models.py           # Database Schema & Admin Initialization
-├── placement.db        # SQLite Database (generated after run)
-├── static/
-│   ├── css/            # Custom Stylesheets
-│   └── uploads/
-│       └── resumes/    # Stored student resumes
-└── templates/          # HTML files (Admin, Student, Company folders)
+The app will be live at: http://127.0.0.1:5000
 
 # Security & Logic Highlights
 Soft Delete: Uses an is_active flag so data is never truly lost, only hidden.
