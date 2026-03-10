@@ -24,7 +24,7 @@
                         <tr>
                             <th>Sr. No</th>
                             <th>Company Name</th>
-                            <th>No. of Drives</th>
+                            <th>Website</th>
                             <th class = "text-end">Actions</th>
                         </tr>
                     </thead>
@@ -33,7 +33,7 @@
                         <tr>
                             <td>{{ loop.index }}</td>
                             <td>{{ c.name }}</td>
-                            <td>{{ c.drives|length }}</td>
+                                <td>{{ c.website }}</td>
                             <td class = "text-end">
                                 <a href = "{{ url_for('view_company', company_id=c.id) }}" class = "btn btn-outline-dark">View</a>
                             </td>
