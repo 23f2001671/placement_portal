@@ -48,17 +48,11 @@ Ensure you have Python 3.x installed.
 # 2. Setup Virtual Environment
 Open your terminal in the project folder and run:
 
-Create the environment:
+Create the environment: python -m venv venv
 
-python -m venv venv
+Activate it (Windows): venv\Scripts\activate 
 
-Activate it (Windows):
-
-venv\Scripts\activate 
-
-Activate it (Mac/Linux):
-
-source venv/bin/activate
+Activate it (Mac/Linux): source venv/bin/activate
 
 # 3. Install Dependencies
 pip install Flask Flask-SQLAlchemy
