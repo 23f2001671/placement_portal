@@ -55,7 +55,7 @@ Activate it (Windows): venv\Scripts\activate
 Activate it (Mac/Linux): source venv/bin/activate
 
 # 3. Install Dependencies
-pip install Flask Flask-SQLAlchemy
+pip install Flask Flask-SQLAlchemy jinja2
 
 # 4. Initialize the Database
 Before running the app, you need to create the database file and the default admin account:
